@@ -39,7 +39,7 @@
     {
       "id": "productVintageCamera1",
       "description": "Vintage Leica camera",
-      "imageUrl": "https://images.unsplash.com/photo-1516961642265-531546e84af2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHx2aW50YWdlJTIwY2FtZXJhfGVufDB8fHx8MTc2NjY0MDM4NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1492671357725-4c36ca51d815?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHx2aW50YWdlJTIwY2FtZXJhfGVufDB8fHx8MTc2NjY0MDM4NHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "vintage camera"
     },
     {
@@ -63,20 +63,38 @@
     {
       "id": "productDesignerHandbag1",
       "description": "Luxury designer handbag",
-      "imageUrl": "https://images.unsplash.com/photo-1591348278900-019a8a2a8b1d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bHV4dXJ5JTIwaGFuZGJhZ3xlbnwwfHx8fDE3NjY2NTQxMzR8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "luxury handbag"
+      "imageUrl": "https://images.unsplash.com/photo-1689844496219-7afba91f51ef?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8bGVhdGhlciUyMGhhbmRiYWd8ZW58MHx8fHwxNzY2NTcwNDkxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "leather handbag"
     },
     {
-      "id": "productSmartWatch1",
-      "description": "Latest gen smart watch",
-      "imageUrl": "https://images.unsplash.com/photo-1637160151663-a410315e4e75?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxzbWFydCUyMHdhdGNofGVufDB8fHx8MTc2NjU1MzU3MHww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "smart watch"
+      "id": "productLuxuryWatch",
+      "description": "Luxury chronograph watch",
+      "imageUrl": "https://images.unsplash.com/photo-1617617877206-bcdb7990ef2d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjaHJvbm9ncmFwaCUyMHdhdGNofGVufDB8fHx8MTc2NjY1NDkwOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "chronograph watch"
     },
     {
-      "id": "productClassicCar1",
-      "description": "1967 Classic Muscle Car",
-      "imageUrl": "https://images.unsplash.com/photo-1616019459068-4cc6dca4d3a1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxtdXNjbGUlMjBjYXJ8ZW58MHx8fHwxNzY2NjM4OTU2fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "muscle car"
+      "id": "productGalaxySneakers",
+      "description": "Limited Edition 'Galaxy' Sneakers",
+      "imageUrl": "https://images.unsplash.com/photo-1581327323320-dbded32d5598?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjb2xvcmZ1bCUyMHNuZWFrZXJzfGVufDB8fHx8MTc2NjY1NDkwOXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "colorful sneakers"
+    },
+    {
+      "id": "productAntiqueChair",
+      "description": "Antique Wooden Chair",
+      "imageUrl": "https://images.unsplash.com/photo-1634798245965-03669c757183?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHx3b29kZW4lMjBjaGFpcnxlbnwwfHx8fDE3NjY1OTQ1MzR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "wooden chair"
+    },
+    {
+      "id": "productBookCollection",
+      "description": "Rare Book Collection",
+      "imageUrl": "https://images.unsplash.com/photo-1613324766451-2d03b2ea8190?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxvbGQlMjBib29rc3xlbnwwfHx8fDE3NjY2NTQ5MDl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "old books"
+    },
+    {
+      "id": "productElectricGuitar",
+      "description": "Vintage Electric Guitar",
+      "imageUrl": "https://images.unsplash.com/photo-1550985616-10810253b84d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxlbGVjdHJpYyUyMGd1aXRhcnxlbnwwfHx8fDE3NjY2MDQwOTF8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "electric guitar"
     },
     {
       "id": "howItWorksBg",

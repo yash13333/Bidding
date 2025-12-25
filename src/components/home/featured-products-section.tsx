@@ -4,7 +4,7 @@ import { ArrowRight } from 'lucide-react';
 import ProductCard from '@/components/product-card';
 
 export default function FeaturedProductsSection() {
-  const featuredProducts = products.slice(0, 4);
+  const featuredProducts = products.slice(0, 8);
   return (
     <section id="featured" className="py-16 md:py-24 bg-card">
       <div className="container">
