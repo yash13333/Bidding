@@ -46,7 +46,7 @@ export default function AddProductPage() {
     });
 
     const onSubmit = async (data: ProductFormValues) => {
-        if (!user) {
+        if (!user || !firestore) {
             toast({
                 variant: "destructive",
                 title: "Authentication Error",
@@ -70,12 +70,14 @@ export default function AddProductPage() {
                 startingBid: data.startingBid,
                 currentBid: data.startingBid,
                 imageUrl: imageUrl,
+                images: [imageUrl],
                 endDate: endDate.toISOString(),
                 createdAt: new Date().toISOString(),
+                bidHistory: [],
             };
 
             const productsCollection = collection(firestore, 'products');
-            addDocumentNonBlocking(productsCollection, productData);
+            await addDoc(productsCollection, productData);
             
             toast({
                 title: "Item Listed!",
@@ -84,10 +86,11 @@ export default function AddProductPage() {
             router.push('/dashboard');
         } catch (error) {
             console.error("Error adding document: ", error);
+            const errorMessage = (error instanceof Error) ? error.message : "There was an error listing your item. Please try again.";
             toast({
                 variant: "destructive",
                 title: "Listing Failed",
-                description: "There was an error listing your item. Please try again.",
+                description: errorMessage,
             });
         }
     };
