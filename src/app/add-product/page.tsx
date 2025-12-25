@@ -1,3 +1,5 @@
+'use client';
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -5,55 +7,198 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { categories } from "@/lib/data";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useToast } from "@/hooks/use-toast";
+import { useFirestore, useUser } from "@/firebase";
+import { addDoc, collection } from "firebase/firestore";
+import { useRouter } from "next/navigation";
+import { addDocumentNonBlocking } from "@/firebase/non-blocking-updates";
+
+const productSchema = z.object({
+  name: z.string().min(1, "Item Title is required."),
+  description: z.string().min(1, "Description is required."),
+  categoryId: z.string().min(1, "Category is required."),
+  startingBid: z.coerce.number().min(1, "Starting bid must be at least 1."),
+  auctionDuration: z.coerce.number().min(1, "Auction must last at least 1 day.").max(30, "Auction can last at most 30 days."),
+  imageUrl: z.any().refine(files => files?.length == 1, "Image is required."),
+});
+
+type ProductFormValues = z.infer<typeof productSchema>;
 
 export default function AddProductPage() {
+    const { toast } = useToast();
+    const firestore = useFirestore();
+    const { user } = useUser();
+    const router = useRouter();
+
+    const form = useForm<ProductFormValues>({
+        resolver: zodResolver(productSchema),
+        defaultValues: {
+            name: "",
+            description: "",
+            categoryId: "",
+            startingBid: 0,
+            auctionDuration: 7,
+        }
+    });
+
+    const onSubmit = async (data: ProductFormValues) => {
+        if (!user) {
+            toast({
+                variant: "destructive",
+                title: "Authentication Error",
+                description: "You must be logged in to list an item.",
+            });
+            return;
+        }
+
+        // This is a placeholder for image upload. In a real app, you would upload the file
+        // to a storage service like Firebase Storage and get the URL.
+        const imageUrl = "https://picsum.photos/seed/new-item/600/400";
+        const endDate = new Date();
+        endDate.setDate(endDate.getDate() + data.auctionDuration);
+
+        try {
+            const productData = {
+                name: data.name,
+                description: data.description,
+                categoryId: data.categoryId,
+                sellerId: user.uid,
+                startingBid: data.startingBid,
+                currentBid: data.startingBid,
+                imageUrl: imageUrl,
+                endDate: endDate.toISOString(),
+                createdAt: new Date().toISOString(),
+            };
+
+            const productsCollection = collection(firestore, 'products');
+            addDocumentNonBlocking(productsCollection, productData);
+            
+            toast({
+                title: "Item Listed!",
+                description: `${data.name} is now up for auction.`,
+            });
+            router.push('/dashboard');
+        } catch (error) {
+            console.error("Error adding document: ", error);
+            toast({
+                variant: "destructive",
+                title: "Listing Failed",
+                description: "There was an error listing your item. Please try again.",
+            });
+        }
+    };
+
+
     return (
         <div className="container py-12">
             <Card className="max-w-3xl mx-auto">
                 <CardHeader>
-                    <CardTitle className="text-2xl">List a New Item for Auction</CardTitle>
-                    <CardDescription>Fill out the details below to put your item up for bidding.</CardDescription>
+                    <CardTitle className="text-2xl">List a New Item</CardTitle>
+                    <CardDescription>Fill out the details below to put your item up for auction.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form className="grid gap-6">
-                        <div className="grid gap-2">
-                            <Label htmlFor="name">Item Name</Label>
-                            <Input id="name" placeholder="e.g., Vintage Leica M3 Camera" required />
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="description">Description</Label>
-                            <Textarea id="description" placeholder="Describe your item in detail." required />
-                        </div>
-                        <div className="grid md:grid-cols-2 gap-6">
-                            <div className="grid gap-2">
-                                <Label htmlFor="category">Category</Label>
-                                <Select>
-                                    <SelectTrigger id="category">
-                                        <SelectValue placeholder="Select a category" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {categories.map(category => (
-                                            <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                    <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-6">
+                            <FormField
+                                control={form.control}
+                                name="name"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Item Title</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="e.g., Vintage Leather Jacket" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="description"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Description</FormLabel>
+                                        <FormControl>
+                                            <Textarea placeholder="Describe your item in detail." {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <FormField
+                                    control={form.control}
+                                    name="categoryId"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Category</FormLabel>
+                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select a category" />
+                                                    </SelectTrigger>
+                                            </FormControl>
+                                                    <SelectContent>
+                                                        {categories.map(category => (
+                                                            <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="imageUrl"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Image</FormLabel>
+                                            <FormControl>
+                                                 <Input type="file" className="file:text-foreground" onChange={(e) => field.onChange(e.target.files)} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
                             </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="start-bid">Starting Bid ($)</Label>
-                                <Input id="start-bid" type="number" placeholder="e.g., 500" required />
+                            <div className="grid md:grid-cols-2 gap-6">
+                                <FormField
+                                    control={form.control}
+                                    name="startingBid"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Starting Bid ($)</FormLabel>
+                                            <FormControl>
+                                                <Input type="number" placeholder="e.g., 25" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="auctionDuration"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Auction Duration (days)</FormLabel>
+                                            <FormControl>
+                                                <Input type="number" placeholder="e.g., 7" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
                             </div>
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="images">Images</Label>
-                            <Input id="images" type="file" multiple className="file:text-foreground"/>
-                            <p className="text-sm text-muted-foreground">Upload up to 5 images. The first will be the main image.</p>
-                        </div>
-                         <div className="grid gap-2">
-                                <Label htmlFor="end-date">Auction End Date</Label>
-                                <Input id="end-date" type="datetime-local" required />
-                            </div>
-                        <Button type="submit" className="w-full">List Item</Button>
-                    </form>
+                            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+                                {form.formState.isSubmitting ? 'Listing Item...' : 'List Item'}
+                            </Button>
+                        </form>
+                    </Form>
                 </CardContent>
             </Card>
         </div>
