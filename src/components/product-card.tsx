@@ -2,49 +2,65 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import type { Product } from '@/lib/types';
-import { Clock } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceStrict, format } from 'date-fns';
+import { Badge } from './ui/badge';
 
 type ProductCardProps = {
   product: Product;
 };
 
-export default function ProductCard({ product }: ProductCardProps) {
-  const [timeLeft, setTimeLeft] = useState('');
-
-  useEffect(() => {
+const Countdown = ({ endDate }: { endDate: Date }) => {
     const calculateTimeLeft = () => {
-      try {
-        const endDate = new Date(product.endDate);
-        if (isNaN(endDate.getTime())) {
-            setTimeLeft('Invalid date');
-            return;
-        }
         const now = new Date();
-        if (endDate > now) {
-          setTimeLeft(formatDistanceToNow(endDate, { addSuffix: true }));
-        } else {
-          setTimeLeft('Auction ended');
+        const end = new Date(endDate);
+        if (end <= now) {
+            return 'Auction ended';
         }
-      } catch (error) {
-        setTimeLeft('Invalid date');
-      }
+
+        const distance = formatDistanceStrict(end, now);
+        
+        // Simplified formatting logic
+        const parts = distance.split(' ');
+        if (parts.includes('days') || parts.includes('day')) {
+             return format(end, 'dd MMM');
+        }
+        if (parts.includes('hours') || parts.includes('hour') || parts.includes('minutes') || parts.includes('minute') || parts.includes('seconds') || parts.includes('second')) {
+            const days = Math.floor((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+            const hours = Math.floor(((end.getTime() - now.getTime()) % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor(((end.getTime() - now.getTime()) % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor(((end.getTime() - now.getTime()) % (1000 * 60)) / 1000);
+            
+            let result = '';
+            if (days > 0) result += `${days}d `;
+            result += `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            return result;
+        }
+
+        return distance;
     };
 
-    calculateTimeLeft();
-    const interval = setInterval(calculateTimeLeft, 60000); // Update every minute
+    const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
 
-    return () => clearInterval(interval);
-  }, [product.endDate]);
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setTimeLeft(calculateTimeLeft());
+        }, 1000);
+
+        return () => clearInterval(timer);
+    }, [endDate]);
+
+    return <span>{timeLeft}</span>;
+}
+
+export default function ProductCard({ product }: ProductCardProps) {
 
   return (
-    <Card className="flex flex-col h-full bg-card overflow-hidden transition-shadow duration-300 hover:shadow-lg hover:shadow-primary/10">
+    <Card className="flex flex-col h-full bg-card overflow-hidden transition-shadow duration-300 hover:shadow-lg hover:shadow-primary/10 border-0">
       <Link href={`/product/${product.id}`} className="block group">
-        <div className="relative aspect-[4/3] overflow-hidden">
+        <div className="relative aspect-[4/3] overflow-hidden rounded-t-lg">
           <Image
             src={product.images[0]}
             alt={product.name}
@@ -53,31 +69,25 @@ export default function ProductCard({ product }: ProductCardProps) {
             data-ai-hint="product image"
           />
         </div>
-      </Link>
-      <CardHeader className="pt-4 pb-2">
-        <CardTitle className="text-lg leading-tight truncate">
-          <Link href={`/product/${product.id}`} className="hover:text-primary transition-colors">
+      <CardContent className="p-4 bg-background rounded-b-lg flex-grow flex flex-col">
+        <h3 className="text-lg font-semibold leading-tight truncate text-foreground mb-2">
             {product.name}
-          </Link>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="flex-grow pt-0 pb-4">
-        <div className="flex justify-between items-center text-sm">
-          <p className="text-muted-foreground">Current Bid</p>
-          <p className="font-bold text-lg text-primary">
-            ${product.currentBid.toLocaleString()}
-          </p>
+        </h3>
+        <Badge variant="secondary" className="capitalize w-fit mb-4">{product.category}</Badge>
+        
+        <div className="mt-auto flex justify-between items-end text-sm">
+          <div>
+            <p className="text-muted-foreground">Current Bid</p>
+            <p className="font-bold text-lg text-primary">
+              ${product.currentBid.toLocaleString()}
+            </p>
+          </div>
+          <div className="text-muted-foreground tabular-nums">
+             <Countdown endDate={product.endDate} />
+          </div>
         </div>
       </CardContent>
-      <CardFooter className="flex justify-between items-center bg-background/50 p-4">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Clock className="h-4 w-4" />
-          <span>{timeLeft}</span>
-        </div>
-        <Button asChild size="sm">
-          <Link href={`/product/${product.id}`}>Bid Now</Link>
-        </Button>
-      </CardFooter>
+      </Link>
     </Card>
   );
 }

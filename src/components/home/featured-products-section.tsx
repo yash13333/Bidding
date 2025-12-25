@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
 import { products } from '@/lib/data';
 import { ArrowRight } from 'lucide-react';
 import ProductCard from '@/components/product-card';
@@ -11,12 +10,12 @@ export default function FeaturedProductsSection() {
       <div className="container">
         <div className="flex justify-between items-end mb-8">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Featured Auctions</h2>
-              <p className="mt-2 text-lg text-muted-foreground">Ending Soon & Popular Items</p>
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tight">Live Auctions</h2>
+              <p className="mt-2 text-lg text-muted-foreground">Ending soon - don't miss out!</p>
             </div>
-            <Button variant="ghost" asChild className="hover:bg-accent hover:text-accent-foreground">
-                <Link href="/products">View All <ArrowRight className="ml-2 h-4 w-4" /></Link>
-            </Button>
+            <Link href="/products" className="text-primary hover:text-primary/80 flex items-center gap-2">
+                View All <ArrowRight className="h-4 w-4" />
+            </Link>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {featuredProducts.map((product) => (
