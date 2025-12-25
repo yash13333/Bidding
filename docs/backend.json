@@ -23,13 +23,18 @@
           "type": "string",
           "description": "The date and time the user registered.",
           "format": "date-time"
+        },
+        "balance": {
+          "type": "number",
+          "description": "The user's current wallet balance."
         }
       },
       "required": [
         "id",
         "username",
         "email",
-        "registrationDate"
+        "registrationDate",
+        "balance"
       ]
     },
     "Product": {

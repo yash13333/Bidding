@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Gavel, LayoutGrid, Menu, Plus, User as UserIcon, LogOut, Wallet } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { useAuth, useUser } from '@/firebase';
+import { useAuth, useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,11 +17,21 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
+import { doc } from 'firebase/firestore';
 
 export function Header() {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
+  const firestore = useFirestore();
   const router = useRouter();
+
+  const userDocRef = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [firestore, user]);
+
+  const { data: userData } = useDoc<{ balance: number }>(userDocRef);
+
 
   const handleSignOut = async () => {
     await signOut(auth);
@@ -57,7 +67,7 @@ export function Header() {
             <>
               <div className="hidden md:flex items-center gap-2">
                 <p className="text-sm text-muted-foreground">Balance:</p>
-                <p className="text-sm font-bold">$1,500.00</p>
+                <p className="text-sm font-bold">${(userData?.balance ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

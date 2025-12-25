@@ -9,15 +9,29 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { DollarSign, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
+import { doc, updateDoc, increment } from 'firebase/firestore';
 
 export default function WalletPage() {
-  const [balance, setBalance] = useState(1500);
+  const { user } = useUser();
+  const firestore = useFirestore();
+  const { toast } = useToast();
+  
+  const userDocRef = useMemoFirebase(() => {
+    if (!firestore || !user) return null;
+    return doc(firestore, 'users', user.uid);
+  }, [firestore, user]);
+
+  const { data: userData } = useDoc<{ balance: number }>(userDocRef);
+  const balance = userData?.balance ?? 0;
+
   const [depositAmount, setDepositAmount] = useState('50.00');
   const [withdrawAmount, setWithdrawAmount] = useState('50.00');
-  const { toast } = useToast();
 
-  const handleDeposit = (e: React.FormEvent) => {
+  const handleDeposit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!userDocRef) return;
+
     const amount = parseFloat(depositAmount);
     if (isNaN(amount) || amount <= 0) {
       toast({
@@ -27,7 +41,11 @@ export default function WalletPage() {
       });
       return;
     }
-    setBalance((prev) => prev + amount);
+    
+    await updateDoc(userDocRef, {
+        balance: increment(amount)
+    });
+
     toast({
       title: 'Deposit Successful',
       description: `$${amount.toFixed(2)} has been added to your wallet.`,
@@ -35,8 +53,9 @@ export default function WalletPage() {
     setDepositAmount('50.00');
   };
 
-  const handleWithdraw = (e: React.FormEvent) => {
+  const handleWithdraw = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!userDocRef) return;
     const amount = parseFloat(withdrawAmount);
     if (isNaN(amount) || amount <= 0) {
       toast({
@@ -54,7 +73,11 @@ export default function WalletPage() {
         });
         return;
     }
-    setBalance((prev) => prev - amount);
+    
+    await updateDoc(userDocRef, {
+        balance: increment(-amount)
+    });
+
     toast({
       title: 'Withdrawal Successful',
       description: `$${amount.toFixed(2)} has been withdrawn from your wallet.`,

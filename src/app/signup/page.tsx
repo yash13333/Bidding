@@ -5,14 +5,16 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useAuth } from '@/firebase';
+import { useAuth, useFirestore } from '@/firebase';
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, updateProfile } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { doc, setDoc } from 'firebase/firestore';
 
 export default function SignupPage() {
   const auth = useAuth();
+  const firestore = useFirestore();
   const router = useRouter();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -22,11 +24,32 @@ export default function SignupPage() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!firestore) {
+      toast({
+        variant: 'destructive',
+        title: 'Sign up failed',
+        description: 'An unexpected error occurred.',
+      });
+      return;
+    }
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(userCredential.user, {
-        displayName: `${firstName} ${lastName}`.trim(),
+      const user = userCredential.user;
+      const displayName = `${firstName} ${lastName}`.trim();
+      await updateProfile(user, {
+        displayName: displayName,
       });
+
+      // Create user document in Firestore
+      const userDocRef = doc(firestore, 'users', user.uid);
+      await setDoc(userDocRef, {
+        id: user.uid,
+        username: displayName,
+        email: user.email,
+        registrationDate: new Date().toISOString(),
+        balance: 0,
+      });
+
       toast({ title: 'Account created successfully!' });
       router.push('/');
     } catch (error: any) {
@@ -41,8 +64,28 @@ export default function SignupPage() {
 
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
+    if (!firestore) {
+      toast({
+        variant: 'destructive',
+        title: 'Sign up failed',
+        description: 'An unexpected error occurred.',
+      });
+      return;
+    }
     try {
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+
+      // Create user document in Firestore
+      const userDocRef = doc(firestore, 'users', user.uid);
+      await setDoc(userDocRef, {
+        id: user.uid,
+        username: user.displayName,
+        email: user.email,
+        registrationDate: new Date().toISOString(),
+        balance: 0,
+      }, { merge: true }); // Merge to avoid overwriting if doc already exists
+
       toast({ title: 'Sign up successful!' });
       router.push('/');
     } catch (error: any) {
