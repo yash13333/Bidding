@@ -1,13 +1,15 @@
 import type { Category, Product } from '@/lib/types';
 import { placeholderImages } from './placeholder-images';
-import { Camera, Shirt, Gem, Home, Car, Shapes } from 'lucide-react';
+import { Camera, Shirt, Gem, Home, Car, Shapes, Palette, Trophy } from 'lucide-react';
 
 export const categories: Category[] = [
   { id: 'electronics', name: 'Electronics', icon: Camera },
   { id: 'fashion', name: 'Fashion', icon: Shirt },
+  { id: 'art', name: 'Art', icon: Palette },
   { id: 'collectibles', name: 'Collectibles', icon: Gem },
   { id: 'home-garden', name: 'Home & Garden', icon: Home },
   { id: 'vehicles', name: 'Vehicles', icon: Car },
+  { id: 'sports', name: 'Sports', icon: Trophy },
   { id: 'other', name: 'Other', icon: Shapes },
 ];
 
@@ -31,7 +33,7 @@ export const products: Product[] = [
     id: 'abstract-painting-2',
     name: 'Original Abstract Painting "Cosmos"',
     description: 'A vibrant, large-scale abstract painting by a renowned contemporary artist. Mixed media on canvas.',
-    category: 'collectibles',
+    category: 'art',
     startBid: 1200,
     currentBid: 1500,
     bidHistory: [
