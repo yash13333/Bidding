@@ -1,3 +1,5 @@
+'use client';
+
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { products } from '@/lib/data';
@@ -11,16 +13,24 @@ import { Badge } from '@/components/ui/badge';
 import CountdownTimer from '@/components/countdown-timer';
 import BiddingTool from '@/components/bidding-tool';
 import { format } from 'date-fns';
+import { useEffect, useState } from 'react';
+import type { Product } from '@/lib/types';
+import { User } from 'lucide-react';
 
 type ProductPageProps = {
   params: { id: string };
 };
 
 export default function ProductPage({ params }: ProductPageProps) {
-  const product = products.find((p) => p.id === params.id);
+  const [product, setProduct] = useState<Product | undefined>(products.find((p) => p.id === params.id));
+
+  useEffect(() => {
+    setProduct(products.find((p) => p.id === params.id));
+  }, [params.id]);
+
 
   if (!product) {
-    notFound();
+    return notFound();
   }
 
   const timeRemaining = new Date(product.endDate).getTime() - new Date().getTime();
@@ -33,7 +43,7 @@ export default function ProductPage({ params }: ProductPageProps) {
             <CarouselContent>
               {product.images.map((img, index) => (
                 <CarouselItem key={index}>
-                  <Card className="overflow-hidden">
+                  <Card className="overflow-hidden rounded-lg">
                     <div className="relative aspect-[4/3]">
                         <Image
                             src={img}
@@ -53,37 +63,53 @@ export default function ProductPage({ params }: ProductPageProps) {
           </Carousel>
         </div>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-8">
           <div>
             <Badge variant="secondary" className="mb-2 capitalize">{product.category}</Badge>
-            <h1 className="text-3xl md:text-4xl font-bold">{product.name}</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-primary">{product.name}</h1>
+            <div className="flex items-center gap-2 mt-2 text-muted-foreground">
+                <User className="h-4 w-4" />
+                <span>Seller: {product.bidHistory[product.bidHistory.length-1]?.user || 'Starting Bid'}</span>
+            </div>
             <p className="mt-4 text-muted-foreground">{product.description}</p>
           </div>
 
-          <Card className="bg-card">
-            <CardHeader className="flex-row items-center justify-between pb-2">
-              <CardTitle>Live Auction</CardTitle>
-              <CountdownTimer endDate={product.endDate} />
-            </CardHeader>
-            <CardContent className="space-y-4 pt-4">
-              <div className="flex items-baseline justify-between">
-                <p className="text-muted-foreground">Current Bid</p>
-                <p className="text-4xl font-bold text-primary">${product.currentBid.toLocaleString()}</p>
-              </div>
-              <form className="grid gap-4">
-                <div className="grid grid-cols-3 gap-2">
-                    <Button type="button" variant="outline">+ $10</Button>
-                    <Button type="button" variant="outline">+ $50</Button>
-                    <Button type="button" variant="outline">+ $100</Button>
-                </div>
-                <div className="flex gap-2">
-                  <Label htmlFor="bid-amount" className="sr-only">Bid amount</Label>
-                  <Input id="bid-amount" type="number" placeholder={`$${product.currentBid + 10} or more`} />
-                  <Button type="submit" className="px-8">Place Bid</Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+          <div className='space-y-4'>
+            <h2 className="text-2xl font-bold">Auction Details</h2>
+            <div className="grid grid-cols-2 gap-4">
+                <Card>
+                    <CardContent className="p-4 text-center">
+                        <p className="text-sm text-muted-foreground">Current Bid</p>
+                        <p className="text-3xl font-bold text-primary">${product.currentBid.toLocaleString()}</p>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardContent className="p-4 text-center">
+                        <p className="text-sm text-muted-foreground">Bids</p>
+                        <p className="text-3xl font-bold">{product.bidHistory.length}</p>
+                    </CardContent>
+                </Card>
+            </div>
+            <Card>
+                <CardContent className="p-4 flex flex-col items-center gap-2">
+                     <p className="text-sm text-muted-foreground">Auction Ends In</p>
+                    <CountdownTimer endDate={product.endDate} />
+                </CardContent>
+            </Card>
+          </div>
+          
+          <div className='space-y-4'>
+            <h2 className="text-2xl font-bold">Your Bid</h2>
+            <Card>
+                <CardContent className="pt-6">
+                     <form className="flex gap-2">
+                        <Label htmlFor="bid-amount" className="sr-only">Bid amount</Label>
+                        <Input id="bid-amount" type="number" placeholder={`$${product.currentBid + 10} or more`} className="text-base"/>
+                        <Button type="submit" className="px-8 text-base font-bold">Place Bid</Button>
+                    </form>
+                </CardContent>
+            </Card>
+          </div>
 
           <BiddingTool 
             currentBid={product.currentBid}

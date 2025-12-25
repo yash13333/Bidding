@@ -50,10 +50,13 @@ export default function CountdownTimer({ endDate }: CountdownTimerProps) {
   Object.entries(timeLeft).forEach(([interval, value]) => {
     if (value === undefined || value < 0) return;
     
+    // Don't display days if it's 0
+    if (interval === 'days' && value === 0) return;
+
     timerComponents.push(
-      <div key={interval} className="flex flex-col items-center">
-        <span className="font-bold text-lg">{value.toString().padStart(2, '0')}</span>
-        <span className="text-xs text-muted-foreground">{interval.charAt(0).toUpperCase()}</span>
+      <div key={interval} className="flex flex-col items-center p-2 rounded-md bg-muted min-w-[60px]">
+        <span className="font-bold text-2xl">{value.toString().padStart(2, '0')}</span>
+        <span className="text-xs text-muted-foreground">{interval}</span>
       </div>
     );
   });
