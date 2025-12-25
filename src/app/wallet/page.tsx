@@ -8,10 +8,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { DollarSign, ArrowDownToLine, ArrowUpFromLine, CreditCard } from 'lucide-react';
+import { DollarSign, ArrowDownToLine, ArrowUpFromLine, CreditCard, QrCode, Loader2 } from 'lucide-react';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc, increment } from 'firebase/firestore';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import Image from 'next/image';
 
 const UpiIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -47,10 +49,38 @@ export default function WalletPage() {
   const [depositAmount, setDepositAmount] = useState('50.00');
   const [withdrawAmount, setWithdrawAmount] = useState('50.00');
   const [paymentMethod, setPaymentMethod] = useState('card');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
+
+  const completeDeposit = async () => {
+    if (!userDocRef) return;
+    setIsPaymentProcessing(true);
+
+    const amount = parseFloat(depositAmount);
+    await updateDoc(userDocRef, {
+        balance: increment(amount)
+    });
+
+    // Simulate payment processing time
+    setTimeout(() => {
+        toast({
+            title: 'Deposit Successful',
+            description: `$${amount.toFixed(2)} has been added to your wallet.`,
+        });
+        setIsPaymentProcessing(false);
+        setIsPaymentModalOpen(false);
+        setIsSubmitting(false);
+        setDepositAmount('50.00');
+    }, 2000);
+  };
+
 
   const handleDeposit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userDocRef) return;
+    setIsSubmitting(true);
 
     const amount = parseFloat(depositAmount);
     if (isNaN(amount) || amount <= 0) {
@@ -59,23 +89,30 @@ export default function WalletPage() {
         title: 'Invalid Amount',
         description: 'Please enter a valid amount to deposit.',
       });
+      setIsSubmitting(false);
       return;
     }
-    
-    await updateDoc(userDocRef, {
-        balance: increment(amount)
-    });
 
-    toast({
-      title: 'Deposit Successful',
-      description: `$${amount.toFixed(2)} has been added to your wallet.`,
-    });
-    setDepositAmount('50.00');
+    if (paymentMethod === 'card') {
+        await updateDoc(userDocRef, {
+            balance: increment(amount)
+        });
+        toast({
+            title: 'Deposit Successful',
+            description: `$${amount.toFixed(2)} has been added to your wallet.`,
+        });
+        setDepositAmount('50.00');
+        setIsSubmitting(false);
+    } else {
+        // For PayPal and UPI, open the simulation modal
+        setIsPaymentModalOpen(true);
+    }
   };
 
   const handleWithdraw = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userDocRef) return;
+    setIsSubmitting(true);
     const amount = parseFloat(withdrawAmount);
     if (isNaN(amount) || amount <= 0) {
       toast({
@@ -83,6 +120,7 @@ export default function WalletPage() {
         title: 'Invalid Amount',
         description: 'Please enter a valid amount to withdraw.',
       });
+      setIsSubmitting(false);
       return;
     }
     if (amount > balance) {
@@ -91,6 +129,7 @@ export default function WalletPage() {
             title: 'Insufficient Funds',
             description: 'You cannot withdraw more than your current balance.',
         });
+        setIsSubmitting(false);
         return;
     }
     
@@ -103,9 +142,62 @@ export default function WalletPage() {
       description: `$${amount.toFixed(2)} has been withdrawn from your wallet.`,
     });
     setWithdrawAmount('50.00');
+    setIsSubmitting(false);
   };
+  
+  const renderPaymentModalContent = () => {
+    if (isPaymentProcessing) {
+        return (
+            <div className="flex flex-col items-center justify-center text-center h-48">
+                <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+                <p className="text-lg font-semibold">Processing your payment...</p>
+                <p className="text-sm text-muted-foreground">Please do not close this window.</p>
+            </div>
+        )
+    }
+
+    if (paymentMethod === 'paypal') {
+        return (
+            <>
+                <DialogHeader>
+                    <DialogTitle>Redirecting to PayPal</DialogTitle>
+                    <DialogDescription>You are being redirected to the PayPal website to complete your payment.</DialogDescription>
+                </DialogHeader>
+                <div className="flex items-center justify-center h-32">
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+                <DialogFooter>
+                    <Button onClick={completeDeposit} className="w-full">Simulate Successful Payment</Button>
+                </DialogFooter>
+            </>
+        )
+    }
+
+    if (paymentMethod === 'upi') {
+        return (
+             <>
+                <DialogHeader>
+                    <DialogTitle>Scan to Pay with UPI</DialogTitle>
+                    <DialogDescription>Use your favorite UPI app to scan the QR code and complete your payment of <strong>${depositAmount}</strong>.</DialogDescription>
+                </DialogHeader>
+                <div className="flex items-center justify-center p-4 bg-white rounded-lg">
+                    <div className="relative h-48 w-48">
+                        <Image src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=upi://pay?pa=bidverse@fakebank&pn=BidVerse&am=50.00" alt="UPI QR Code" layout="fill" />
+                    </div>
+                </div>
+                <DialogFooter>
+                     <Button onClick={completeDeposit} className="w-full">
+                        <QrCode className="mr-2 h-4 w-4" /> I have completed the payment
+                    </Button>
+                </DialogFooter>
+            </>
+        )
+    }
+    return null;
+  }
 
   return (
+    <>
     <div className="container py-12">
       <header className="text-center mb-12">
         <h1 className="text-4xl md:text-5xl font-bold tracking-tight">My Wallet</h1>
@@ -158,6 +250,7 @@ export default function WalletPage() {
                             onChange={(e) => setDepositAmount(e.target.value)}
                             step="0.01"
                             min="1"
+                            disabled={isSubmitting}
                         />
                     </div>
 
@@ -167,6 +260,7 @@ export default function WalletPage() {
                             defaultValue="card"
                             className="grid grid-cols-3 gap-4 mt-2"
                             onValueChange={(value) => setPaymentMethod(value)}
+                            disabled={isSubmitting}
                         >
                             <Label htmlFor="card" className={`border rounded-md p-4 flex flex-col items-center justify-center cursor-pointer ${paymentMethod === 'card' ? 'border-primary ring-2 ring-primary' : ''}`}>
                                 <RadioGroupItem value="card" id="card" className="sr-only" />
@@ -186,7 +280,8 @@ export default function WalletPage() {
                         </RadioGroup>
                     </div>
 
-                    <Button type="submit" className="w-full">
+                    <Button type="submit" className="w-full" disabled={isSubmitting}>
+                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Deposit Funds
                     </Button>
                   </form>
@@ -211,9 +306,11 @@ export default function WalletPage() {
                         onChange={(e) => setWithdrawAmount(e.target.value)}
                         step="0.01"
                         min="1"
+                        disabled={isSubmitting}
                       />
                     </div>
-                    <Button type="submit" className="w-full">
+                    <Button type="submit" className="w-full" disabled={isSubmitting}>
+                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                       Withdraw Funds
                     </Button>
                   </form>
@@ -224,5 +321,19 @@ export default function WalletPage() {
         </div>
       </div>
     </div>
+    <Dialog open={isPaymentModalOpen} onOpenChange={(isOpen) => {
+        if (!isOpen) {
+            setIsSubmitting(false);
+        }
+        setIsPaymentModalOpen(isOpen);
+    }}>
+        <DialogContent>
+            {renderPaymentModalContent()}
+        </DialogContent>
+    </Dialog>
+    </>
   );
 }
+
+
+    
