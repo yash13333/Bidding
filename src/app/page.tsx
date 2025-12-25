@@ -7,9 +7,10 @@ export default function Home() {
   return (
     <>
       <HeroSection />
-      <CategoriesSection />
+      {/* The following sections are not visible in the screenshot but are kept for content completeness */}
+      {/* <CategoriesSection />
       <FeaturedProductsSection />
-      <HowItWorksSection />
+      <HowItWorksSection /> */}
     </>
   );
 }

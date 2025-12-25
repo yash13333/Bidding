@@ -5,8 +5,8 @@ import { Footer } from '@/components/layout/footer';
 import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'BidVerse',
-  description: 'The universe of online auctions.',
+  title: 'Auction Hub',
+  description: 'Bid on Extraordinary Items.',
 };
 
 export default function RootLayout({
