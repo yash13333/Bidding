@@ -1,13 +1,14 @@
 import type { Category, Product } from '@/lib/types';
 import { placeholderImages } from './placeholder-images';
+import { Camera, Shirt, Gem, Home, Car, Shapes } from 'lucide-react';
 
 export const categories: Category[] = [
-  { id: 'electronics', name: 'Electronics', image: placeholderImages.electronicsCategory.imageUrl },
-  { id: 'collectibles', name: 'Collectibles & Art', image: placeholderImages.collectiblesCategory.imageUrl },
-  { id: 'fashion', name: 'Fashion', image: placeholderImages.fashionCategory.imageUrl },
-  { id: 'home-garden', name: 'Home & Garden', image: placeholderImages.homeCategory.imageUrl },
-  { id: 'vehicles', name: 'Vehicles', image: placeholderImages.vehiclesCategory.imageUrl },
-  { id: 'other', name: 'Other', image: placeholderImages.otherCategory.imageUrl },
+  { id: 'electronics', name: 'Electronics', icon: Camera },
+  { id: 'fashion', name: 'Fashion', icon: Shirt },
+  { id: 'collectibles', name: 'Collectibles', icon: Gem },
+  { id: 'home-garden', name: 'Home & Garden', icon: Home },
+  { id: 'vehicles', name: 'Vehicles', icon: Car },
+  { id: 'other', name: 'Other', icon: Shapes },
 ];
 
 export const products: Product[] = [

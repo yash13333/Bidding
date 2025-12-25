@@ -1,12 +1,12 @@
 export type Category = {
   id: string;
   name: string;
-  image: string;
+  icon: React.ComponentType<{ className?: string }>;
 };
 
 export type Product = {
   id: string;
-  name: string;
+  name:string;
   description: string;
   category: string;
   startBid: number;
