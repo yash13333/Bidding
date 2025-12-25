@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -28,7 +29,7 @@ export function Header() {
   };
 
   const navLinks = [
-    { href: '/#auctions', label: 'Auctions' },
+    { href: '/#featured', label: 'Auctions' },
     { href: '/add-product', label: 'Sell Item', icon: Plus },
   ];
 
