@@ -13,8 +13,8 @@
     --popover: 222 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 48 96% 56%; /* #F5B51B */
-    --primary-foreground: 222 47.4% 1.2%;
+    --primary: 142.1 76.2% 36.3%; /* A nice green */
+    --primary-foreground: 142.1 76.2% 9.3%;
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -30,7 +30,7 @@
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 48 96% 56%;
+    --ring: 142.1 76.2% 36.3%;
     
     --radius: 0.5rem;
   }
@@ -45,8 +45,8 @@
     --popover: 222 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 48 96% 56%; /* #F5B51B */
-    --primary-foreground: 222 47.4% 1.2%;
+    --primary: 142.1 76.2% 36.3%; /* A nice green */
+    --primary-foreground: 142.1 76.2% 9.3%;
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -62,7 +62,7 @@
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 48 96% 56%;
+    --ring: 142.1 76.2% 36.3%;
   }
 }
 
