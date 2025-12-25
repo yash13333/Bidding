@@ -13,7 +13,7 @@
     --popover: 222 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 142.1 76.2% 36.3%; /* A nice green */
+    --primary: 142.1 71% 45.1%; /* A nice light green */
     --primary-foreground: 142.1 76.2% 9.3%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -30,7 +30,7 @@
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 142.1 76.2% 36.3%;
+    --ring: 142.1 71% 45.1%;
     
     --radius: 0.5rem;
   }
@@ -45,7 +45,7 @@
     --popover: 222 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 142.1 76.2% 36.3%; /* A nice green */
+    --primary: 142.1 71% 45.1%; /* A nice light green */
     --primary-foreground: 142.1 76.2% 9.3%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -62,7 +62,7 @@
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 142.1 76.2% 36.3%;
+    --ring: 142.1 71% 45.1%;
   }
 }
 
