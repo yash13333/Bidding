@@ -13,44 +13,51 @@ type ProductCardProps = {
 };
 
 const Countdown = ({ endDate }: { endDate: Date }) => {
-    const calculateTimeLeft = () => {
-        const now = new Date();
-        const end = new Date(endDate);
-        if (end <= now) {
-            return 'Auction ended';
-        }
-
-        const distance = formatDistanceStrict(end, now);
-        
-        // Simplified formatting logic
-        const parts = distance.split(' ');
-        if (parts.includes('days') || parts.includes('day')) {
-             return format(end, 'dd MMM');
-        }
-        if (parts.includes('hours') || parts.includes('hour') || parts.includes('minutes') || parts.includes('minute') || parts.includes('seconds') || parts.includes('second')) {
-            const days = Math.floor((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-            const hours = Math.floor(((end.getTime() - now.getTime()) % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor(((end.getTime() - now.getTime()) % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor(((end.getTime() - now.getTime()) % (1000 * 60)) / 1000);
-            
-            let result = '';
-            if (days > 0) result += `${days}d `;
-            result += `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            return result;
-        }
-
-        return distance;
-    };
-
-    const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+    const [timeLeft, setTimeLeft] = useState('');
 
     useEffect(() => {
+        const calculateTimeLeft = () => {
+            const now = new Date();
+            const end = new Date(endDate);
+            if (end <= now) {
+                return 'Auction ended';
+            }
+
+            const distance = formatDistanceStrict(end, now);
+            
+            // Simplified formatting logic
+            const parts = distance.split(' ');
+            if (parts.includes('days') || parts.includes('day')) {
+                return format(end, 'dd MMM');
+            }
+            if (parts.includes('hours') || parts.includes('hour') || parts.includes('minutes') || parts.includes('minute') || parts.includes('seconds') || parts.includes('second')) {
+                const days = Math.floor((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                const hours = Math.floor(((end.getTime() - now.getTime()) % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor(((end.getTime() - now.getTime()) % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor(((end.getTime() - now.getTime()) % (1000 * 60)) / 1000);
+                
+                let result = '';
+                if (days > 0) result += `${days}d `;
+                result += `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                return result;
+            }
+
+            return distance;
+        };
+
+        // Set initial value
+        setTimeLeft(calculateTimeLeft());
+
         const timer = setInterval(() => {
             setTimeLeft(calculateTimeLeft());
         }, 1000);
 
         return () => clearInterval(timer);
     }, [endDate]);
+
+    if (!timeLeft) {
+        return null;
+    }
 
     return <span>{timeLeft}</span>;
 }
