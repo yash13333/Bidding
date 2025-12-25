@@ -14,8 +14,9 @@ import CountdownTimer from '@/components/countdown-timer';
 import BiddingTool from '@/components/bidding-tool';
 import { format } from 'date-fns';
 import { useEffect, useState } from 'react';
-import type { Product } from '@/lib/types';
+import type { Product, Bid } from '@/lib/types';
 import { User } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 type ProductPageProps = {
   params: { id: string };
@@ -23,6 +24,9 @@ type ProductPageProps = {
 
 export default function ProductPage({ params }: ProductPageProps) {
   const [product, setProduct] = useState<Product | undefined>(products.find((p) => p.id === params.id));
+  const [bidAmount, setBidAmount] = useState<number | string>('');
+  const { toast } = useToast();
+
 
   useEffect(() => {
     setProduct(products.find((p) => p.id === params.id));
@@ -34,6 +38,41 @@ export default function ProductPage({ params }: ProductPageProps) {
   }
 
   const timeRemaining = new Date(product.endDate).getTime() - new Date().getTime();
+  
+  const handleBidSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const newBidAmount = Number(bidAmount);
+    if (!newBidAmount || newBidAmount <= product.currentBid) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Bid",
+        description: `Your bid must be higher than the current bid of $${product.currentBid.toLocaleString()}.`,
+      });
+      return;
+    }
+
+    const newBid: Bid = {
+      user: 'You', // This would be the authenticated user in a real app
+      amount: newBidAmount,
+      timestamp: new Date(),
+    };
+
+    setProduct(prevProduct => {
+      if (!prevProduct) return;
+      return {
+        ...prevProduct,
+        currentBid: newBidAmount,
+        bidHistory: [newBid, ...prevProduct.bidHistory],
+      }
+    });
+
+    setBidAmount('');
+
+    toast({
+      title: "Bid Placed Successfully!",
+      description: `Your bid of $${newBidAmount.toLocaleString()} has been placed.`,
+    });
+  };
 
   return (
     <div className="container py-8 md:py-12">
@@ -102,9 +141,18 @@ export default function ProductPage({ params }: ProductPageProps) {
             <h2 className="text-2xl font-bold">Your Bid</h2>
             <Card>
                 <CardContent className="pt-6">
-                     <form className="flex gap-2">
+                     <form onSubmit={handleBidSubmit} className="flex gap-2">
                         <Label htmlFor="bid-amount" className="sr-only">Bid amount</Label>
-                        <Input id="bid-amount" type="number" placeholder={`$${product.currentBid + 10} or more`} className="text-base"/>
+                        <Input 
+                          id="bid-amount" 
+                          type="number" 
+                          placeholder={`$${(product.currentBid + 1).toLocaleString()} or more`}
+                          className="text-base"
+                          value={bidAmount}
+                          onChange={(e) => setBidAmount(e.target.value)}
+                          required
+                          min={product.currentBid + 1}
+                        />
                         <Button type="submit" className="px-8 text-base font-bold">Place Bid</Button>
                     </form>
                 </CardContent>
@@ -124,7 +172,7 @@ export default function ProductPage({ params }: ProductPageProps) {
             </CardHeader>
             <CardContent>
               <ul className="space-y-4">
-                {[...product.bidHistory].reverse().map((bid, index) => (
+                {[...product.bidHistory].map((bid, index) => (
                   <li key={index} className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <Avatar>
