@@ -18,6 +18,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { doc } from 'firebase/firestore';
+import { Skeleton } from '../ui/skeleton';
 
 export function Header() {
   const { user, isUserLoading } = useUser();
@@ -30,7 +31,7 @@ export function Header() {
     return doc(firestore, 'users', user.uid);
   }, [firestore, user]);
 
-  const { data: userData } = useDoc<{ balance: number }>(userDocRef);
+  const { data: userData, isLoading: isUserDataLoading } = useDoc<{ balance: number }>(userDocRef);
 
 
   const handleSignOut = async () => {
@@ -42,6 +43,99 @@ export function Header() {
     { href: '/#featured', label: 'Auctions' },
     { href: '/add-product', label: 'Sell Item', icon: Plus },
   ];
+
+  const renderUserSection = () => {
+    if (isUserLoading) {
+      return (
+        <div className="flex items-center gap-2">
+            <Skeleton className="h-8 w-24" />
+            <Skeleton className="h-8 w-8 rounded-full" />
+        </div>
+      )
+    }
+
+    if (user) {
+      return (
+        <>
+          <div className="hidden md:flex items-center gap-2">
+            <p className="text-sm text-muted-foreground">Balance:</p>
+            {isUserDataLoading ? <Skeleton className="h-5 w-16" /> : 
+              <p className="text-sm font-bold">${(userData?.balance ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+            }
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user.photoURL ?? ''} alt={user.displayName ?? 'User'} />
+                  <AvatarFallback>{user.displayName?.charAt(0) ?? user.email?.charAt(0)}</AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">{user.displayName}</p>
+                  <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => router.push('/dashboard')}>
+                <LayoutGrid className="mr-2 h-4 w-4" />
+                <span>Dashboard</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/add-product')}>
+                <Plus className="mr-2 h-4 w-4" />
+                <span>Sell an Item</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/wallet')}>
+                <Wallet className="mr-2 h-4 w-4" />
+                <span>Wallet</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSignOut}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </>
+      );
+    }
+
+    return (
+        <div className="hidden md:flex gap-2">
+            <Button asChild variant="ghost" className="hover:bg-accent hover:text-accent-foreground">
+                <Link href="/login">Sign In</Link>
+            </Button>
+            <Button asChild>
+                <Link href="/signup">Get Started</Link>
+            </Button>
+        </div>
+    );
+  };
+
+  const renderMobileMenu = () => {
+    if (isUserLoading) {
+        return null;
+    }
+    if (user) {
+      return (
+         <div className="flex flex-col gap-2 mt-auto">
+            <Button asChild size="lg" variant="outline" onClick={handleSignOut}>
+               <p>Sign Out</p>
+             </Button>
+         </div>
+      )
+    }
+
+    return (
+      <div className="flex flex-col gap-2 mt-auto">
+        <Button asChild size="lg" variant="outline"><Link href="/login">Sign In</Link></Button>
+        <Button asChild size="lg"><Link href="/signup">Get Started</Link></Button>
+      </div>
+    );
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -63,59 +157,9 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-4">
-          {!isUserLoading && user ? (
-            <>
-              <div className="hidden md:flex items-center gap-2">
-                <p className="text-sm text-muted-foreground">Balance:</p>
-                <p className="text-sm font-bold">${(userData?.balance ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-              </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.photoURL ?? ''} alt={user.displayName ?? 'User'} />
-                      <AvatarFallback>{user.displayName?.charAt(0) ?? user.email?.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{user.displayName}</p>
-                      <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => router.push('/dashboard')}>
-                    <LayoutGrid className="mr-2 h-4 w-4" />
-                    <span>Dashboard</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push('/add-product')}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    <span>Sell an Item</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => router.push('/wallet')}>
-                    <Wallet className="mr-2 h-4 w-4" />
-                    <span>Wallet</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Log out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </>
-          ) : (
-            <div className="hidden md:flex gap-2">
-                <Button asChild variant="ghost" className="hover:bg-accent hover:text-accent-foreground">
-                    <Link href="/login">Sign In</Link>
-                </Button>
-                <Button asChild>
-                    <Link href="/signup">Get Started</Link>
-                </Button>
-            </div>
-          )}
+          <div className="hidden md:flex items-center gap-4">
+            {renderUserSection()}
+          </div>
 
           <Sheet>
             <SheetTrigger asChild>
@@ -125,7 +169,7 @@ export function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="right">
-              <div className="flex flex-col gap-6 p-6">
+              <div className="flex h-full flex-col gap-6 p-6">
                 <Link href="/" className="flex items-center gap-2 mb-4">
                     <div className="bg-primary p-2 rounded-md">
                         <Gavel className="h-6 w-6 text-primary-foreground" />
@@ -139,20 +183,22 @@ export function Header() {
                       {link.label}
                     </Link>
                   ))}
+                  {user && (
+                    <>
+                      <Link href="/dashboard" className="text-lg font-medium text-muted-foreground transition-colors hover:text-primary flex items-center gap-2">
+                          <LayoutGrid className="h-4 w-4" />
+                          Dashboard
+                      </Link>
+                       <Link href="/wallet" className="text-lg font-medium text-muted-foreground transition-colors hover:text-primary flex items-center gap-2">
+                          <Wallet className="h-4 w-4" />
+                          Wallet
+                      </Link>
+                    </>
+                  )}
                 </nav>
-                {!user && (
-                  <div className="flex flex-col gap-2 mt-auto">
-                    <Button asChild size="lg" variant="outline"><Link href="/login">Sign In</Link></Button>
-                    <Button asChild size="lg"><Link href="/signup">Get Started</Link></Button>
-                  </div>
-                )}
-                 {user && (
-                  <div className="flex flex-col gap-2 mt-auto">
-                     <Button asChild size="lg" variant="outline" onClick={handleSignOut}>
-                        <p>Sign Out</p>
-                      </Button>
-                  </div>
-                 )}
+                <div className="md:hidden">
+                 {renderMobileMenu()}
+                </div>
               </div>
             </SheetContent>
           </Sheet>
