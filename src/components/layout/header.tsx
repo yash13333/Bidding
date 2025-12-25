@@ -1,11 +1,31 @@
+'use client';
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Gavel, Menu, Plus } from 'lucide-react';
+import { Gavel, Menu, Plus, User as UserIcon, LogOut } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useAuth, useUser } from '@/firebase';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 
 export function Header() {
-  // Mock authentication state
-  const isLoggedIn = false;
+  const { user, isUserLoading } = useUser();
+  const auth = useAuth();
+  const router = useRouter();
+
+  const handleSignOut = async () => {
+    await signOut(auth);
+    router.push('/');
+  };
 
   const navLinks = [
     { href: '/#auctions', label: 'Auctions' },
@@ -32,10 +52,35 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          {isLoggedIn ? (
-             <Button asChild>
-                <Link href="/account">My Account</Link>
-            </Button>
+          {!isUserLoading && user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.photoURL ?? ''} alt={user.displayName ?? 'User'} />
+                    <AvatarFallback>{user.displayName?.charAt(0) ?? user.email?.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{user.displayName}</p>
+                    <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.push('/account')}>
+                  <UserIcon className="mr-2 h-4 w-4" />
+                  <span>My Account</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Sign out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <div className="hidden md:flex gap-2">
                 <Button asChild variant="ghost" className="hover:bg-accent hover:text-accent-foreground">
@@ -70,12 +115,19 @@ export function Header() {
                     </Link>
                   ))}
                 </nav>
-                {!isLoggedIn && (
+                {!user && (
                   <div className="flex flex-col gap-2 mt-auto">
                     <Button asChild size="lg" variant="outline"><Link href="/login">Sign In</Link></Button>
                     <Button asChild size="lg"><Link href="/signup">Get Started</Link></Button>
                   </div>
                 )}
+                 {user && (
+                  <div className="flex flex-col gap-2 mt-auto">
+                     <Button asChild size="lg" variant="outline" onClick={handleSignOut}>
+                        <p>Sign Out</p>
+                      </Button>
+                  </div>
+                 )}
               </div>
             </SheetContent>
           </Sheet>
